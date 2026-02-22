@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Montagem do Plano - NutriPlan</title>
     <style>
     :root {
@@ -27,7 +27,25 @@
         flex-direction: column; 
         align-items: center; 
     }
+/* Impede o zoom automático ao focar em inputs no iPhone */
+input, select, textarea {
+    font-size: 16px !important; /* Tamanho mínimo para o Safari não dar zoom */
+}
 
+/* Se você achar que 16px ficou muito grande visualmente no seu card, 
+   podemos usar um "truque" de escala para manter o tamanho visual mas enganar o Safari */
+@media screen and (max-width: 768px) {
+    input, select {
+        font-size: 16px !important;
+    }
+}
+
+/* Adicional: impede que o usuário selecione textos por acidente ao clicar rápido nos botões */
+button, .result-item, .kcal-badge {
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+}
     .container { width: 100%; max-width: 450px; position: relative; }
 
     /* DASHBOARD */
@@ -407,11 +425,11 @@
     }
 
     function gerarPDF() {
-        document.getElementById('pdf-cliente-nome').innerText = "Paciente: " + perfil.nome;
+        document.getElementById('pdf-cliente-nome').innerText = "Usuario: " + perfil.nome;
         document.getElementById('pdf-total-kcal').innerText = "Total: " + Math.round(totais.kcal) + " kcal";
-        document.getElementById('pdf-total-p').innerText = "P: " + Math.round(totais.prot) + "g";
-        document.getElementById('pdf-total-c').innerText = "C: " + Math.round(totais.carb) + "g";
-        document.getElementById('pdf-total-g').innerText = "G: " + Math.round(totais.gord) + "g";
+        document.getElementById('pdf-total-p').innerText = "Proteina: " + Math.round(totais.prot) + "g";
+        document.getElementById('pdf-total-c').innerText = "Carboidrato: " + Math.round(totais.carb) + "g";
+        document.getElementById('pdf-total-g').innerText = "Gordura: " + Math.round(totais.gord) + "g";
         setTimeout(() => { window.print(); }, 300);
     }
 
