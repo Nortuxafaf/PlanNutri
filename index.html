@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil do Paciente - NutriPlan</title>
+    <style>
+        :root {
+            --primary: #10b981;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            background: var(--card);
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        header { margin-bottom: 25px; }
+        h1 { font-size: 1.5rem; margin: 0; color: var(--text-main); }
+        p { color: var(--text-sub); font-size: 0.9rem; margin-top: 5px; }
+
+        .form-group { margin-bottom: 18px; }
+        
+        label { 
+            display: block; 
+            font-size: 0.75rem; 
+            font-weight: 700; 
+            margin-bottom: 8px; 
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s;
+            box-sizing: border-box;
+            background: #fcfcfc;
+            appearance: none;
+        }
+
+        input:focus, select:focus { border-color: var(--primary); background-color: #fff; }
+
+        .radio-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .radio-group.three-cols { grid-template-columns: 1fr 1fr 1fr; }
+
+        .radio-group input { display: none; }
+
+        .radio-group label {
+            background: #f1f5f9;
+            padding: 12px;
+            text-align: center;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 0;
+        }
+
+        .radio-group input:checked + label {
+            background: #ecfdf5;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        .btn-next {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+            transition: transform 0.1s, background 0.2s;
+        }
+
+        .btn-next:disabled { background: #94a3b8; cursor: not-allowed; }
+        .btn-next:active { transform: scale(0.98); }
+
+        #db-status {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 15px;
+            color: var(--text-sub);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Dados para cálculo</h1>
+        <p>Preencha os campos para calcular a meta calórica.</p>
+    </header>
+
+    <div class="form-group">
+        <label for="nome">Nome Completo</label>
+        <input type="text" id="nome" placeholder="Ex: João Silva">
+    </div>
+
+    <div class="form-group">
+        <label>Sexo</label>
+        <div class="radio-group">
+            <input type="radio" name="sexo" id="masc" value="masculino" checked>
+            <label for="masc">♂️ Masculino</label>
+            
+            <input type="radio" name="sexo" id="fem" value="feminino">
+            <label for="fem">♀️ Feminino</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="idade">Idade</label>
+        <input type="number" id="idade" placeholder="Ex: 28">
+    </div>
+
+    <div class="row">
+        <div class="form-group">
+            <label for="altura">Altura (cm)</label>
+            <input type="number" id="altura" placeholder="175">
+        </div>
+        <div class="form-group">
+            <label for="peso">Peso (kg)</label>
+            <input type="number" id="peso" placeholder="75">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Objetivo</label>
+        <div class="radio-group three-cols">
+            <input type="radio" name="objetivo" id="perda" value="perda">
+            <label for="perda">🔥 Perda</label>
+            
+            <input type="radio" name="objetivo" id="manutencao" value="manutencao" checked>
+            <label for="manutencao">⚖️ Manter</label>
+
+            <input type="radio" name="objetivo" id="ganho" value="ganho">
+            <label for="ganho">💪 Ganho</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="atividade">Nível de Atividade</label>
+        <select id="atividade">
+            <option value="1.2">Sedentário (Pouco exercício)</option>
+            <option value="1.375">Leve (1-3 dias/semana)</option>
+            <option value="1.55" selected>Moderado (3-5 dias/semana)</option>
+            <option value="1.725">Intenso (6-7 dias/semana)</option>
+            <option value="1.9">Atleta (2x ao dia)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="estrategia-refeicoes">Frequência Alimentar</label>
+        <select id="estrategia-refeicoes">
+            <option value="2">2 Refeições</option>
+            <option value="3">3 Refeições</option>
+            <option value="4" selected>4 Refeições</option>
+            <option value="5">5 Refeições</option>
+            <option value="6">6 Refeições</option>
+        </select>
+    </div>
+
+    <button id="btnPrincipal" class="btn-next" onclick="proximaEtapa()">Salvar e Continuar →</button>
+    <div id="db-status">Sincronizando banco de alimentos...</div>
+</div>
+
+<script>
+    // --- 1. CONFIGURAÇÃO DO BANCO DE DADOS ---
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwtVkd4vh2bLAIiC137ECQ11jyS0ijfg8xhVV_fK0mlxIT5Mx_V0UbhLdh3K78vMxlk/exec'; // <--- Verifique se sua URL está aqui
+
+    // Inicia o carregamento assim que o HTML carregar
+    document.addEventListener('DOMContentLoaded', () => {
+        carregarBancoDeDados();
+    });
+
+    async function carregarBancoDeDados() {
+        const statusEl = document.getElementById('db-status');
+        console.log("🔄 Iniciando carregamento do banco de alimentos...");
+        
+        try {
+            const response = await fetch(`${APPS_SCRIPT_URL}?action=readAll`);
+            
+            if (!response.ok) throw new Error('Erro na rede');
+            
+            const data = await response.json();
+            localStorage.setItem('banco_alimentos', JSON.stringify(data));
+            
+            if(statusEl) statusEl.innerText = "✅ Banco de alimentos pronto.";
+            console.log("✅ Banco carregado!");
+        } catch (error) {
+            console.error("❌ Falha ao carregar banco:", error);
+            if(statusEl) statusEl.innerText = "⚠️ Modo offline (usando cache)";
+        }
+    }
+
+    // --- 2. LÓGICA DE NAVEGAÇÃO ---
+    function proximaEtapa() {
+        const btn = document.getElementById('btnPrincipal'); // Certifique-se que o botão tem esse ID
+        
+        // Coleta os valores do formulário
+        const nome = document.getElementById('nome').value;
+        const sexo = document.querySelector('input[name="sexo"]:checked').value;
+        const idade = parseFloat(document.getElementById('idade').value);
+        const altura = parseFloat(document.getElementById('altura').value);
+        const peso = parseFloat(document.getElementById('peso').value);
+        const objetivo = document.querySelector('input[name="objetivo"]:checked').value;
+        const fatorAtividade = parseFloat(document.getElementById('atividade').value);
+        const refeicoesQtd = parseInt(document.getElementById('estrategia-refeicoes').value);
+
+        // Validação básica
+        if(!nome || !idade || !altura || !peso) {
+            alert("Por favor, preencha todos os campos.");
+            return;
+        }
+
+        // Feedback no botão
+        if(btn) {
+            btn.innerText = "Calculando...";
+            btn.disabled = true;
+        }
+
+        // Cálculo da TMB (Mifflin-St Jeor)
+        let tmb;
+        if (sexo === 'masculino') {
+            tmb = (10 * peso) + (6.25 * altura) - (5 * idade) + 5;
+        } else {
+            tmb = (10 * peso) + (6.25 * altura) - (5 * idade) - 161;
+        }
+
+        // Cálculo do Gasto Calórico Total (GET)
+        const get = tmb * fatorAtividade;
+
+        // Ajuste conforme o Objetivo
+        let metaCalorica;
+        if (objetivo === 'perda') {
+            metaCalorica = get - 500;
+        } else if (objetivo === 'ganho') {
+            metaCalorica = get + 400;
+        } else {
+            metaCalorica = get;
+        }
+
+        // Organiza o Objeto para o LocalStorage
+        const perfilPaciente = {
+            nome,
+            sexo,
+            idade,
+            altura,
+            peso,
+            objetivo,
+            refeicoesQtd,
+            metaCalorica: Math.round(metaCalorica),
+            tmb: Math.round(tmb)
+        };
+
+        // Salva no LocalStorage
+        localStorage.setItem('perfil_paciente', JSON.stringify(perfilPaciente));
+
+        // Redireciona após um breve delay para o usuário ver o feedback
+        setTimeout(() => {
+            window.location.href = 'instrucao.html'; 
+        }, 600);
+    }
+</script>
+
+</body>
+</html>

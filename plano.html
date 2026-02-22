@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Montagem do Plano - NutriPlan</title>
+    <style>
+    :root {
+        --primary: #10b981;
+        --dark: #1e293b;
+        --bg: #f8fafc;
+        --card: #ffffff;
+        --text-main: #1e293b;
+        --text-sub: #64748b;
+        --border: #e2e8f0;
+        --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    
+    body { 
+        background-color: var(--bg); 
+        color: var(--text-main); 
+        margin: 0; 
+        padding: 15px; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+    }
+
+    .container { width: 100%; max-width: 450px; position: relative; }
+
+    /* DASHBOARD */
+    .dashboard {
+        background: var(--dark); 
+        color: white; 
+        padding: 20px; 
+        border-radius: 24px;
+        margin-bottom: 20px; 
+        position: sticky; 
+        top: 10px; 
+        z-index: 1000;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        width: 100%;
+    }
+    .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .kcal-badge { background: var(--primary); padding: 6px 15px; border-radius: 10px; font-weight: 800; font-size: 1.1rem; }
+
+    .macro-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .macro-item { background: rgba(255,255,255,0.08); padding: 10px; border-radius: 15px; text-align: center; }
+    .macro-item small { display: block; font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; }
+    .macro-item span { font-weight: 700; font-size: 0.9rem; display: block; }
+    
+    .progress-bg { background: rgba(255,255,255,0.1); height: 4px; border-radius: 2px; margin-top: 8px; overflow: hidden; }
+    .progress-fill { background: var(--primary); height: 100%; width: 0%; transition: width 0.3s; }
+
+    /* CARDS DE REFEIÇÃO */
+    .meal-step { display: none; width: 100%; }
+    .meal-step.active { display: block; animation: fadeIn 0.3s ease; }
+    
+    .meal-card { 
+        background: var(--card); 
+        border-radius: 20px; 
+        padding: 20px; 
+        border: 1px solid var(--border); 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        margin-bottom: 20px;
+    }
+    
+    .meal-header { 
+        font-weight: 800; 
+        color: var(--primary); 
+        border-bottom: 2px solid var(--bg); 
+        padding-bottom: 12px; 
+        margin-bottom: 10px; 
+        display: flex; 
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* LISTA DE ALIMENTOS */
+    .food-row { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        padding: 12px 0; 
+        border-bottom: 1px solid #f1f5f9; 
+    }
+    .food-info { display: flex; flex-direction: column; }
+    .food-info strong { color: var(--dark); font-size: 0.95rem; }
+    .food-info small { color: var(--text-sub); font-size: 0.8rem; }
+    .food-kcal { font-weight: 700; color: var(--dark); }
+
+    /* INPUTS E DROPDOWN (BUSCA) */
+    .add-box { 
+        margin-top: 20px; 
+        background: #f1f5f9; 
+        padding: 15px; 
+        border-radius: 18px; 
+        position: relative; /* Necessário para o dropdown flutuar */
+    }
+
+    .results-list { 
+        background: white; 
+        border-radius: 12px; 
+        max-height: 180px; 
+        overflow-y: auto; 
+        display: none; 
+        border: 1px solid var(--border); 
+        position: absolute; /* Flutua sobre o resto */
+        width: calc(100% - 30px);
+        z-index: 2000;
+        box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+        margin-top: 5px;
+    }
+    .result-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
+    .result-item:hover { background: #f0fdf4; color: var(--primary); }
+
+    .input-row { 
+        display: grid; 
+        grid-template-columns: 1fr 1fr 50px; 
+        gap: 10px; 
+        margin-top: 10px; 
+        align-items: center;
+    }
+    
+    input, select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; outline: none; background: white; }
+    .btn-add { background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; height: 45px; font-size: 1.2rem; }
+    .btn-del { color: var(--danger); background: none; border: none; font-size: 0.75rem; cursor: pointer; margin-top: 5px; font-weight: bold; text-align: left; }
+
+    .nav-buttons { display: flex; gap: 12px; margin-top: 20px; margin-bottom: 40px; width: 100%; max-width: 450px; }
+    .btn-nav { flex: 1; padding: 15px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; }
+    .btn-prev { background: #e2e8f0; color: var(--text-sub); }
+    .btn-next { background: var(--primary); color: white; }
+
+    /* PDF HEADER */
+    .print-only-header {
+        display: none;
+        text-align: center;
+        border-bottom: 3px solid #10b981;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+    }
+
+    /* IMPRESSÃO */
+    @media print {
+        body { background: white !important; padding: 0 !important; display: block !important; }
+        .container { max-width: 100% !important; width: 100% !important; }
+        .print-only-header { display: block !important; }
+        .dashboard, .nav-buttons, .add-box, .btn-del, .btn-add { display: none !important; }
+        .meal-step { display: block !important; margin-bottom: 40px !important; page-break-inside: avoid; }
+        .meal-card { border: none !important; box-shadow: none !important; padding: 0 !important; }
+        .meal-header { background: #f1f5f9 !important; padding: 10px !important; border-bottom: 2px solid var(--primary) !important; -webkit-print-color-adjust: exact; }
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="print-only-header">
+        <h1 style="margin:0; color:#10b981;">PLANO ALIMENTAR</h1>
+        <h3 id="pdf-cliente-nome" style="margin:5px 0; color:#1e293b;"></h3>
+        <div style="display: flex; justify-content: center; gap: 20px; font-weight: bold; margin-top: 10px;">
+            <span id="pdf-total-kcal"></span>
+            <span id="pdf-total-p"></span>
+            <span id="pdf-total-c"></span>
+            <span id="pdf-total-g"></span>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="dash-header">
+            <h2 id="userName" style="margin:0; font-size: 1.1rem;">Plano</h2>
+            <div class="kcal-badge"><span id="currKcal">0</span> / <span id="targetKcal">0</span></div>
+        </div>
+        <div class="macro-grid">
+            <div class="macro-item">
+                <small>Prot</small>
+                <span><b id="currP">0</b> / <i id="goalP">0</i>g</span>
+                <div class="progress-bg"><div id="barP" class="progress-fill"></div></div>
+            </div>
+            <div class="macro-item">
+                <small>Carb</small>
+                <span><b id="currC">0</b> / <i id="goalC">0</i>g</span>
+                <div class="progress-bg"><div id="barC" class="progress-fill"></div></div>
+            </div>
+            <div class="macro-item">
+                <small>Gord</small>
+                <span><b id="currG">0</b> / <i id="goalG">0</i>g</span>
+                <div class="progress-bg"><div id="barG" class="progress-fill"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="container-refeicoes"></div>
+
+    <div class="nav-buttons">
+        <button id="btnPrev" class="btn-nav btn-prev" onclick="mudarPasso(-1)">Anterior</button>
+        <button id="btnNext" class="btn-nav btn-next" onclick="mudarPasso(1)">Próxima Refeição</button>
+    </div>
+</div>
+
+<script>
+    const unidades = ["Grama(s)", "Ml(s)", "Unidade(s)", "Colher(es) de sopa","Xicaras(S)","Copo(s) Americanos","Escumadeira(s)","Concha(s)"];
+    const perfil = JSON.parse(localStorage.getItem('perfil_paciente')) || { nome: "Usuário", peso: 70, metaCalorica: 2000, refeicoesQtd: 4 };
+    const bancoAlimentos = JSON.parse(localStorage.getItem('banco_alimentos')) || [];
+    
+    let passoAtual = 1;
+    let totais = { kcal: 0, prot: 0, carb: 0, gord: 0 };
+    let metas = { prot: 0, carb: 0, gord: 0 };
+    let alimentoSelecionado = null;
+
+    function init() {
+        document.getElementById('userName').innerText = perfil.nome;
+        document.getElementById('targetKcal').innerText = perfil.metaCalorica;
+
+        metas.prot = Math.round(perfil.peso * 2);
+        metas.gord = Math.round(perfil.peso * 1);
+        metas.carb = Math.round((perfil.metaCalorica - (metas.prot * 4) - (metas.gord * 9)) / 4);
+
+        document.getElementById('goalP').innerText = metas.prot;
+        document.getElementById('goalC').innerText = metas.carb;
+        document.getElementById('goalG').innerText = metas.gord;
+
+        montarPassos();
+        renderDash();
+    }
+
+    function montarPassos() {
+        const container = document.getElementById('container-refeicoes');
+        let html = "";
+        for (let i = 1; i <= perfil.refeicoesQtd; i++) {
+            html += `
+                <div id="passo-${i}" class="meal-step ${i === 1 ? 'active' : ''}">
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <span>REFEIÇÃO ${i}</span>
+                            <span id="ref-total-${i}">0 kcal</span>
+                        </div>
+                        <div id="lista-${i}"><p style="color: #94a3b8; font-size: 0.8rem; text-align: center;">Vazio</p></div>
+                        <div class="add-box">
+                            <input type="text" id="busca-${i}" placeholder="🔍 Buscar alimento..." oninput="buscar(this, ${i})">
+                            <div id="res-${i}" class="results-list"></div>
+                            <div class="input-row">
+                                <input type="number" id="qtd-${i}" placeholder="Qtd">
+                                <select id="unid-${i}">${unidades.map(u => `<option value="${u}">${u}</option>`).join('')}</select>
+                                <button class="btn-add" onclick="confirmarAdicao(${i})">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+        atualizarBotoes();
+    }
+
+    function buscar(input, refId) {
+    const termo = input.value.toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, ""); // Remove acentos do termo pesquisado
+
+    const resDiv = document.getElementById(`res-${refId}`);
+    
+    if (termo.length < 2) { 
+        resDiv.style.display = 'none'; 
+        return; 
+    }
+
+    // Filtra ignorando acentos e ordena de A-Z
+    const filtrados = bancoAlimentos
+        .filter(a => {
+            const nomeNormalizado = a.nome.toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
+            return nomeNormalizado.includes(termo);
+        })
+        .sort((a, b) => a.nome.localeCompare(b.nome)) // Ordenação alfabética
+        .slice(0, 8); // Aumentei para 8 resultados já que agora a lista flutua
+
+    if (filtrados.length > 0) {
+        resDiv.innerHTML = filtrados.map(a => `
+            <div class="result-item" onclick="selecionarAlimento(${refId}, ${JSON.stringify(a).replace(/"/g, '&quot;')})">
+                ${a.nome}
+            </div>
+        `).join('');
+        resDiv.style.display = 'block';
+    } else {
+        resDiv.style.display = 'none';
+    }
+}
+
+    function selecionarAlimento(refId, alimento) {
+        alimentoSelecionado = alimento;
+        document.getElementById(`busca-${refId}`).value = alimento.nome;
+        document.getElementById(`res-${refId}`).style.display = 'none';
+        document.getElementById(`qtd-${refId}`).focus();
+    }
+
+    function limparNum(val) {
+        if (!val) return 0;
+        let n = val.toString().replace(',', '.');
+        let num = parseFloat(n) || 0;
+        return num > 1000 ? 0 : num;
+    }
+
+    function confirmarAdicao(refId) {
+        const qtdInput = document.getElementById(`qtd-${refId}`);
+        const unidade = document.getElementById(`unid-${refId}`).value;
+        const qtd = Number(qtdInput.value.replace(',', '.'));
+
+        const pesoUnidadeDB = limparNum(alimentoSelecionado.peso_unidade) || 100;
+        const pesosReferencia = {
+            "Grama(s)": 1, "Ml(s)": 1, "Colher(es) de sopa": 15, "Xicaras(S)": 240,
+            "Copo(s) Americanos": 190, "Escumadeira(s)": 40, "Concha(s)": 100,
+            "Unidade(s)": pesoUnidadeDB
+        };
+
+        if (!alimentoSelecionado || isNaN(qtd) || qtd <= 0) {
+            alert("Selecione um alimento e insira uma quantidade válida.");
+            return;
+        }
+
+        const pesoDaUnidadeEscolhida = pesosReferencia[unidade] || 1;
+        const gramasTotais = qtd * pesoDaUnidadeEscolhida;
+        const fator = gramasTotais / 100;
+
+        const nutri = {
+            idItem: "item_" + Date.now(),
+            kcal: limparNum(alimentoSelecionado.kcal) * fator,
+            prot: limparNum(alimentoSelecionado.proteina || alimentoSelecionado.prot) * fator,
+            carb: limparNum(alimentoSelecionado.carboidrato || alimentoSelecionado.carb) * fator,
+            gord: limparNum(alimentoSelecionado.gordura || alimentoSelecionado.gord) * fator
+        };
+
+        const lista = document.getElementById(`lista-${refId}`);
+        if (lista.innerHTML.includes("Vazio")) lista.innerHTML = "";
+        
+        const itemHtml = `
+            <div class="food-row" id="${nutri.idItem}">
+                <div class="food-info">
+                    <strong>${alimentoSelecionado.nome}</strong>
+                    <small>${qtd} ${unidade} (${Math.round(gramasTotais)}g)</small>
+                    <button class="btn-del" onclick="removerItem('${refId}', '${nutri.idItem}', ${nutri.kcal}, ${nutri.prot}, ${nutri.carb}, ${nutri.gord})">Remover</button>
+                </div>
+                <span class="food-kcal">${Math.round(nutri.kcal)} kcal</span>
+            </div>`;
+        
+        lista.insertAdjacentHTML('beforeend', itemHtml);
+
+        totais.kcal += nutri.kcal; totais.prot += nutri.prot; totais.carb += nutri.carb; totais.gord += nutri.gord;
+
+        atualizarSomasRefeicao(refId);
+        renderDash();
+        
+        document.getElementById(`busca-${refId}`).value = "";
+        qtdInput.value = "";
+        alimentoSelecionado = null;
+    }
+
+    function removerItem(refId, idItem, kcal, prot, carb, gord) {
+        document.getElementById(idItem).remove();
+        totais.kcal -= kcal; totais.prot -= prot; totais.carb -= carb; totais.gord -= gord;
+        const lista = document.getElementById(`lista-${refId}`);
+        if (lista.children.length === 0) lista.innerHTML = '<p style="color: #94a3b8; font-size: 0.8rem; text-align: center;">Vazio</p>';
+        atualizarSomasRefeicao(refId);
+        renderDash();
+    }
+
+    function atualizarSomasRefeicao(refId) {
+        let soma = 0;
+        const itens = document.getElementById(`lista-${refId}`).querySelectorAll('.food-kcal');
+        itens.forEach(span => soma += parseInt(span.innerText) || 0);
+        document.getElementById(`ref-total-${refId}`).innerText = soma + " kcal";
+    }
+
+    function renderDash() {
+        document.getElementById('currKcal').innerText = Math.round(totais.kcal);
+        document.getElementById('currP').innerText = Math.round(totais.prot);
+        document.getElementById('currC').innerText = Math.round(totais.carb);
+        document.getElementById('currG').innerText = Math.round(totais.gord);
+        updateBar('P', totais.prot, metas.prot);
+        updateBar('C', totais.carb, metas.carb);
+        updateBar('G', totais.gord, metas.gord);
+    }
+
+    function updateBar(macro, atual, meta) {
+        const bar = document.getElementById(`bar${macro}`);
+        let porc = (atual / meta) * 100;
+        bar.style.width = Math.min(porc, 100) + "%";
+        porc > 100 ? bar.classList.add('over-limit') : bar.classList.remove('over-limit');
+    }
+
+    function mudarPasso(dir) {
+        const novo = passoAtual + dir;
+        if(novo >= 1 && novo <= perfil.refeicoesQtd) {
+            document.getElementById(`passo-${passoAtual}`).classList.remove('active');
+            passoAtual = novo;
+            document.getElementById(`passo-${passoAtual}`).classList.add('active');
+            atualizarBotoes();
+            window.scrollTo(0,0);
+        } else if (novo > perfil.refeicoesQtd) {
+            gerarPDF();
+        }
+    }
+
+    function gerarPDF() {
+        document.getElementById('pdf-cliente-nome').innerText = "Paciente: " + perfil.nome;
+        document.getElementById('pdf-total-kcal').innerText = "Total: " + Math.round(totais.kcal) + " kcal";
+        document.getElementById('pdf-total-p').innerText = "P: " + Math.round(totais.prot) + "g";
+        document.getElementById('pdf-total-c').innerText = "C: " + Math.round(totais.carb) + "g";
+        document.getElementById('pdf-total-g').innerText = "G: " + Math.round(totais.gord) + "g";
+        setTimeout(() => { window.print(); }, 300);
+    }
+
+    function atualizarBotoes() {
+        document.getElementById('btnPrev').style.visibility = (passoAtual === 1) ? "hidden" : "visible";
+        document.getElementById('btnNext').innerText = (passoAtual === perfil.refeicoesQtd) ? "Finalizar Plano" : "Próxima Refeição";
+    }
+
+    init();
+</script>
+</body>
+</html>
