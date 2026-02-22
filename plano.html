@@ -424,14 +424,125 @@ button, .result-item, .kcal-badge {
         }
     }
 
-    function gerarPDF() {
-        document.getElementById('pdf-cliente-nome').innerText = "Usuario: " + perfil.nome;
-        document.getElementById('pdf-total-kcal').innerText = "Total: " + Math.round(totais.kcal) + " kcal";
-        document.getElementById('pdf-total-p').innerText = "Proteina: " + Math.round(totais.prot) + "g";
-        document.getElementById('pdf-total-c').innerText = "Carboidrato: " + Math.round(totais.carb) + "g";
-        document.getElementById('pdf-total-g').innerText = "Gordura: " + Math.round(totais.gord) + "g";
-        setTimeout(() => { window.print(); }, 300);
+async function gerarPDF() {
+    console.log("Iniciando processo de PDF...");
+    const apiURL = "https://script.google.com/macros/s/AKfycby_vtMoxJcL_RFQ-rNfyYBcuEv2wRssSrqFiwGiR9cNsEzXhMHYsCGBCO6oOOlKNZE/exec";
+
+    try {
+        // LOG 1: Verificação de Dados
+        if (!apiURL.includes("macros/s/")) {
+            throw new Error("URL da API parece inválida ou não foi configurada.");
+        }
+        console.log("API URL verificada.");
+
+        // LOG 2: Preparação do HTML
+        const container = document.getElementById('container-refeicoes');
+        if (!container) throw new Error("Elemento 'container-refeicoes' não encontrado.");
+        
+        const clone = container.cloneNode(true);
+        clone.querySelectorAll('.add-box, .btn-del, .nav-buttons, .results-list').forEach(el => el.remove());
+        
+        const htmlFinal = `
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { font-family: 'Helvetica', Arial, sans-serif; padding: 20px; color: #1e293b; }
+                
+                /* Cabeçalho Principal */
+                .pdf-header { text-align: center; margin-bottom: 30px; }
+                .pdf-header h1 { color: #10b981; margin: 0; font-size: 26px; text-transform: uppercase; letter-spacing: 1px; }
+                .pdf-header p { margin: 4px 0; color: #475569; font-size: 14px; }
+                .pdf-header b { color: #1e293b; text-transform: uppercase; }
+                
+                /* Card da Refeição */
+                .meal-card { 
+                    margin-bottom: 25px; 
+                    border: 1px solid #e2e8f0; 
+                    border-radius: 8px; 
+                    overflow: hidden;
+                    width: 100%;
+                }
+                
+                /* Título da Refeição (Cinza com Linha Verde) */
+                .meal-header { 
+                    background-color: #f8fafc !important; /* Cinza bem suave */
+                    color: #10b981 !important;
+                    padding: 10px 15px; 
+                    font-size: 16px;
+                    font-weight: bold;
+                    border-bottom: 3px solid #10b981; /* A linha verde característica */
+                }
+
+                /* Tabela de Alimentos */
+                .food-table { width: 100%; border-collapse: collapse; }
+                .food-row { border-bottom: 1px solid #f1f5f9; }
+                .food-cell { padding: 12px 15px; vertical-align: middle; }
+                
+                .food-info-text { text-align: left; }
+                .food-info-text strong { font-size: 14px; color: #1e293b; display: block; }
+                .food-info-text small { color: #64748b; font-size: 12px; }
+                
+                .food-kcal-text { text-align: right; font-weight: bold; color: #1e293b; font-size: 14px; white-space: nowrap; }
+                
+                /* Evitar quebra de página no meio de uma refeição */
+                .meal-step { page-break-inside: avoid; display: block; }
+            </style>
+        </head>
+        <body>
+            <div class="pdf-header">
+                <h1>Plano Alimentar</h1>
+                <p>Usuário: <b>${perfil.nome}</b></p>
+                <p>TOTAL: <b>${Math.round(totais.kcal)} kcal</b> | P: ${Math.round(totais.prot)}g | C: ${Math.round(totais.carb)}g | G: ${Math.round(totais.gord)}g</p>
+            </div>
+            <div class="pdf-body">
+                ${clone.innerHTML}
+            </div>
+        </body>
+        </html>
+    `;
+        console.log("HTML clonado e limpo com sucesso.");
+
+        // LOG 3: Tentativa de Envio
+        console.log("Enviando requisição para o Google...");
+        const response = await fetch(apiURL, {
+            method: "POST",
+            body: JSON.stringify({
+                html: htmlFinal,
+                fileName: `Plano_${perfil.nome}.pdf`
+            })
+        });
+
+        console.log("Resposta recebida. Status:", response.status);
+
+        if (!response.ok) {
+            throw new Error(`Erro no servidor: ${response.status} ${response.statusText}`);
+        }
+
+        const resData = await response.json();
+        console.log("Dados convertidos para JSON.");
+
+        // LOG 4: Verificação do PDF recebido
+        if (resData.base64) {
+            console.log("PDF recebido em Base64. Iniciando download...");
+            const link = document.createElement("a");
+            link.href = "data:application/pdf;base64," + resData.base64;
+            link.download = resData.fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            alert("Download iniciado com sucesso!");
+        } else {
+            console.error("Resposta da API sem campo base64:", resData);
+            throw new Error("A API respondeu, mas não enviou o arquivo PDF.");
+        }
+
+    } catch (e) {
+        console.error("ERRO DETALHADO:", e);
+        // O alert é para você ver o erro direto no iPhone sem precisar de cabo/console
+        alert("🚨 FALHA NO PROCESSO:\n" + e.message);
     }
+}
 
     function atualizarBotoes() {
         document.getElementById('btnPrev').style.visibility = (passoAtual === 1) ? "hidden" : "visible";
